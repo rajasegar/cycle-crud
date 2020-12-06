@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "start": "snowpack dev",
+    "build": "snowpack build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write \"src/**/*.js\"",
+    "lint": "prettier --check \"src/**/*.js\"",
+    "deploy": "git push && git push --tags && npm publish"
+  },
+  "dependencies": {
+    "@cycle/dom": "^22.8.0",
+    "@cycle/run": "^5.5.0",
+    "xstream": "^11.14.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.2.1",
+    "snowpack": "^2.18.0"
+  }
+}
