@@ -16,3 +16,7 @@ button {
   background: none;
   cursor: pointer;
 }
+
+select {
+  width: 250px;
+}
