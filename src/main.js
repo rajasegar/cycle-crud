@@ -26,7 +26,7 @@ export default function main(sources) {
   const select$ = sources.DOM.select('select')
     .events('change')
     .map((ev) => ev.target.value)
-    .startWith('Emil, Hans');
+    .startWith(null);
 
   const create$ = sources.DOM.select('.btnCreate')
     .events('click')
@@ -39,31 +39,47 @@ export default function main(sources) {
 
   const delete$ = sources.DOM.select('.btnDelete')
     .events('click')
-    .map((ev) => 'delete')
+    .map((ev) => {
+        return document.querySelector('select').selectedIndex || 0;
+    })
     .startWith(null);
 
-  const searchList$ = xs.combine(search$, create$).map(([search, newName]) => {
-    console.log(newName);
-    if (newName.first && newName.last) {
-      people = [...people, newName];
-    }
+
+  const state$ = xs.combine(search$, create$, delete$)
+    .map(([search, newName, deleteItem]) => {
+
+      // create
+      if (newName.first && newName.last) {
+        people.push(newName);
+      } else if(deleteItem) {
+        people.splice(deleteItem, 1);
+      }
+
+      // filter
+      let _people = people
+        .filter(
+          (p) =>
+          p.first.toLowerCase().includes(search) ||
+          p.last.toLowerCase().includes(search),
+        );
+
+      return _people;
+    });
+
+  const searchList$ = state$.map((state) => { 
+
     return div([
       p(input('.search', { attrs: { type: 'text' } })),
       p(
         select(
           { attrs: { size: 5 } },
-          people
-            .filter(
-              (p) =>
-                p.first.toLowerCase().includes(search) ||
-                p.last.toLowerCase().includes(search),
-            )
-            .map((p) =>
-              option(
-                { attrs: { value: `${p.last}, ${p.first}` } },
-                `${p.last}, ${p.first}`,
-              ),
+          state
+          .map((p) =>
+            option(
+              { attrs: { value: `${p.last}, ${p.first}` } },
+              `${p.last}, ${p.first}`,
             ),
+          ),
         ),
       ),
     ]);
@@ -87,16 +103,17 @@ export default function main(sources) {
   const vdom$ = xs
     .combine(searchList$, select$)
     .map(([searchList, selected]) => {
+      const [_first, _last] = selected && selected.split(',') || ['',''];
       return div([
         searchList,
         p(
           input('.first', {
-            attrs: { type: 'text', value: selected.split(',')[0] },
+            attrs: { type: 'text', value: _first },
           }),
         ),
         p(
           input('.last', {
-            attrs: { type: 'text', value: selected.split(',')[1] },
+            attrs: { type: 'text', value: _last },
           }),
         ),
         p([
